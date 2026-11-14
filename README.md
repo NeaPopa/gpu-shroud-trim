@@ -19,16 +19,22 @@ Outputs go to `trimmed/`.
 
 ## Result
 
-`python3 trim.py [cut_y]` (needs `pip install trimesh numpy scipy networkx shapely mapbox_earcut`) writes
+`python3 trim.py [cut_y]` (needs `pip install manifold3d trimesh numpy scipy networkx shapely mapbox_earcut`) writes
 `trimmed/backplate.stl` and `trimmed/shroud.stl` (binary STL).
 
-Both parts are cut at **Y = -66 mm**, where the straight PCB section ends: past that the outer walls start to flare
-out and the fan housing begins. The backplate's PCB recess ends at about Y = -63, so the backplate keeps a ~3 mm end
-wall. Both outputs are single watertight bodies, 200.9 mm long (was 300.3 mm), 98.8 mm wide.
+Both parts are cut at **Y = -66 mm**, where the PCB section ends: past that the fan housing begins. The backplate's
+PCB recess ends at about Y = -63, so the backplate keeps a ~3 mm end wall.
+
+The outer side walls of the originals are not quite straight: from about Y = -42 they flare outward toward the fan
+(0.75 mm by Y = -66), and one stretch of edge sits 0.1 mm proud. Both long sides are clipped to the straight edge
+measured at the bracket end, so the outline is a true rectangle. The inner wall faces were already straight, so the
+walls keep their thickness. The only remaining feature on the edge is the original notch at Y = -25 to -5.
+
+Both outputs are single watertight solids (checked on the written files), 200.9 mm long (was 300.3 mm), 97.9 mm wide.
 
 | File | Extents (mm) | Faces |
 |---|---|---|
-| `trimmed/backplate.stl` | 98.8 × 200.9 × 16.3 | 4,140 |
-| `trimmed/shroud.stl` | 98.8 × 200.9 × 36.2 | 4,754 |
+| `trimmed/backplate.stl` | 97.9 × 200.9 × 16.3 | 4,138 |
+| `trimmed/shroud.stl` | 97.9 × 200.9 × 36.2 | 4,742 |
 
-To leave more length, pass a lower value, e.g. `python3 trim.py -75`. Anything below -66 keeps part of the fan flare.
+To leave more length, pass a lower value, e.g. `python3 trim.py -75`; the sides are still clipped straight.
