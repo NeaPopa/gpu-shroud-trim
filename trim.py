@@ -4,9 +4,13 @@ Both parts share the same Y axis (length of the card). The fan housing is at the
 negative-Y end. Everything below CUT_Y is removed, the two long sides are clipped to straight
 lines, and every cut is capped so the result is a closed, printable solid.
 
-CUT_Y = -66 is where the straight PCB section ends on both parts: past it the
-outer walls start to flare out and the fan housing features begin (Y <= -67).
-The backplate's PCB recess ends around Y = -63, so -66 leaves a ~3 mm end wall.
+CUT_Y = -85: the PCB end is concave around the fan, and its longest corner (PCIe
+side) reaches the backplate's end wall at Y = -84. Cutting at -85 keeps 1 mm of
+that wall as an end stop.
+
+At that Y the round fan opening in each part crosses the cut line, which would leave
+a ~35 mm wide notch in the end. FILLS closes it with a floor-level block from the
+cut to Y = -79, where each floor is continuous again, so the end is straight and solid.
 
 Usage: python3 trim.py [cut_y]
 Needs: pip install manifold3d trimesh numpy scipy networkx shapely mapbox_earcut
@@ -18,10 +22,20 @@ import manifold3d as mf
 import numpy as np
 import trimesh
 
-CUT_Y = float(sys.argv[1]) if len(sys.argv) > 1 else -66.0
+CUT_Y = float(sys.argv[1]) if len(sys.argv) > 1 else -85.0
 ROOT = Path(__file__).parent
 OUT = ROOT / "trimmed"
 OUT.mkdir(exist_ok=True)
+
+FILL_TO_Y = -79.0  # both floors are continuous from here toward the PCB
+# name -> (x_lo, x_hi, z_lo, z_hi) of the block that closes the fan-opening notch.
+# Each block also covers the shallow dome on the outer face under the fan, so no
+# pockets are left: the backplate block reaches the fan ring's top (z = -21), and the
+# shroud block is wide enough to cover its dome and sits at the floor top next to the opening.
+FILLS = {
+    "backplate": (-207.0, -146.0, -27.85, -21.0),
+    "shroud": (-86.0, -22.0, -34.5, -28.3),
+}
 
 for name in ("backplate", "shroud"):
     mesh = trimesh.load(ROOT / "original" / f"{name}.stl")
@@ -44,7 +58,12 @@ for name in ("backplate", "shroud"):
     lo = np.array([x_min, CUT_Y - 1, mesh.bounds[0, 2] - 1])
     hi = np.array([x_max, mesh.bounds[1, 1] + 1, mesh.bounds[1, 2] + 1])
     box = mf.Manifold.cube(hi - lo).translate(lo)
-    out = (solid ^ box).to_mesh()
+    solid = solid ^ box
+    if CUT_Y < FILL_TO_Y:
+        x0, x1, z0, z1 = FILLS[name]
+        f_lo, f_hi = np.array([x0, CUT_Y, z0]), np.array([x1, FILL_TO_Y, z1])
+        solid = solid + mf.Manifold.cube(f_hi - f_lo).translate(f_lo)
+    out = solid.to_mesh()
     cut = trimesh.Trimesh(out.vert_properties[:, :3], out.tri_verts)
     dst = OUT / f"{name}.stl"
     cut.export(dst)

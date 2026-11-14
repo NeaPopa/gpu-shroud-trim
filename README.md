@@ -22,19 +22,27 @@ Outputs go to `trimmed/`.
 `python3 trim.py [cut_y]` (needs `pip install manifold3d trimesh numpy scipy networkx shapely mapbox_earcut`) writes
 `trimmed/backplate.stl` and `trimmed/shroud.stl` (binary STL).
 
-Both parts are cut at **Y = -66 mm**, where the PCB section ends: past that the fan housing begins. The backplate's
-PCB recess ends at about Y = -63, so the backplate keeps a ~3 mm end wall.
+Both parts are cut at **Y = -85 mm**. The PCB's fan end is concave (it wraps around the fan), so its corners reach
+past the start of the fan ring: the longest corner (PCIe side) stops at the backplate's end wall at Y = -84. Cutting at
+-85 keeps 1 mm of that wall as an end stop, and keeps the outer wall of the fan ring that the PCB's curved edge sits against.
 
-The outer side walls of the originals are not quite straight: from about Y = -42 they flare outward toward the fan
-(0.75 mm by Y = -66), and one stretch of edge sits 0.1 mm proud. Both long sides are clipped to the straight edge
-measured at the bracket end, so the outline is a true rectangle. The inner wall faces were already straight, so the
-walls keep their thickness. The only remaining feature on the edge is the original notch at Y = -25 to -5.
+Other changes, all so the end is straight and solid:
 
-Both outputs are single watertight solids (checked on the written files), 200.9 mm long (was 300.3 mm), 97.9 mm wide.
+* **Fan opening filled.** At Y = -85 the round fan opening in each part crosses the cut line, which would leave a
+  ~35 mm notch in the end. A floor-level block from the cut to Y = -79 closes it (backplate up to the ring top,
+  z = -21; shroud up to the floor top next to the opening, z = -28.3). The blocks also cover the shallow dome on each
+  part's outer face under the fan, so no pockets are left.
+* **Side walls clipped straight.** The originals' outer walls flare outward toward the fan from about Y = -42, and one
+  stretch of edge sits 0.1 mm proud. Both long sides are clipped to the straight edge measured at the bracket end. The
+  inner wall faces were already straight, so walls keep their thickness. The only remaining feature on the edge is the
+  original notch at Y = -25 to -5.
+
+Both outputs are single watertight solids (checked on the written files), 219.9 mm long (was 300.3 mm), 97.9 mm wide.
 
 | File | Extents (mm) | Faces |
 |---|---|---|
-| `trimmed/backplate.stl` | 97.9 × 200.9 × 16.3 | 4,138 |
-| `trimmed/shroud.stl` | 97.9 × 200.9 × 36.2 | 4,742 |
+| `trimmed/backplate.stl` | 97.9 × 219.9 × 16.3 | 4,808 |
+| `trimmed/shroud.stl` | 97.9 × 219.9 × 36.2 | 9,428 |
 
-To leave more length, pass a lower value, e.g. `python3 trim.py -75`; the sides are still clipped straight.
+The shroud keeps a short, thin piece of the blower's curved wall standing near the end (original geometry, about
+8 mm long).
